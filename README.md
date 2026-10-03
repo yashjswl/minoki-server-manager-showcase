@@ -1,24 +1,23 @@
 # Minoki Server Manager
 
-A Go daemon, a command-line tool and a web console that turn one small Linux server into a Wi-Fi gateway with a guest login page, a VPN, monitoring and a video library.
+A Go daemon, a command-line tool and a web console that turns a small Linux server into a Wi-Fi gateway with a guest login page, a VPN, a DNS level AdBlock, monitoring, a network astorage and video library.
 
 ![Overview](assets/screenshots/overview-light.png)
 
-This repository is a showcase. It holds screenshots, diagrams and write-ups, and the source code is private. If you'd like to read the code, it's available for review on request (contact details are at the bottom). Everything in the screenshots is sample data I made up.
+This repository is a showcase of the project, holding screenshots, diagrams and write-ups. The source code is private and available for review on request (Please refer to contact details at the bottom). The data in screenshots are made up for privacy.
 
 ![A short tour of the console](assets/demo.gif)
 
 ## Why I built it
 
-The first version of this server was a set of PHP pages that ran `sudo` on bash scripts. Those scripts looked after the hotspot, the guest login, the firewall, the VPN and a few self-hosted apps. It worked, but passwords and a PIN were stored in the code, nothing was tested, and each change meant guessing what a script would do to the firewall.
+The first version of this server was a set of PHP pages that ran `sudo` on bash scripts. Those scripts looked after the hotspot, the guest login, the firewall, the VPN and a few self-hosted apps. The system worked but passwords and a PIN were stored in the code, nothing was tested, and each change meant guessing what a script would do to the firewall.
 
-I wanted something I could change with confidence. So I replaced it with a single program that owns the firewall and everything around it, with one authenticated API in front.
-
-It runs in production on an old, small machine: 32-bit Ubuntu 18.04 on a Core 2 Duo with 2 GB of RAM. That limit shaped many of the choices described below.
+This tool replaces the old system with a single program that owns the firewall and everything around it, with one authenticated API in front.
+It runs in production on an old 32-bit Ubuntu 18.04 machine, on a Core 2 Duo with 4 GB of RAM. This limitation shaped many of the choices described below.
 
 ## What it does
 
-It shares an internet connection with devices on its own hotspot and decides who is allowed through.
+It shares an internet connection with devices on its own hotspot and manages access.
 
 - It builds the firewall rules and loads them in one step. You can block a device, limit its speed, or switch all sharing off with one master switch.
 - Guests see a sign-in page. Phones are redirected so their own login sheet opens. The admin can keep several four-digit codes at once and see how often each one is used.
@@ -26,12 +25,10 @@ It shares an internet connection with devices on its own hotspot and decides who
 - Live monitoring: traffic per interface, busiest processes, system meters, service health and an activity feed. Alerts can be spoken aloud.
 - A provisioner that installs about fifteen supporting services, adopts ones that already exist instead of overwriting them, and can take over from the old setup with a rollback.
 - A video library with posters, series, resume, subtitles, and one-time repackaging of MKV files so browsers can play them.
-- Two consoles behind one login: the full admin console, and a smaller one for ordinary users.
-- Installable phone apps. The console and the video library are separate progressive web apps.
+- Two consoles behind one login: the full admin console, and a restricted one for users.
+- Installable phone apps. The console and the video library are separate progressive web apps (PWA).
 
-## What this project shows
-
-I've tried to use it as a chance to practise the whole path from kernel to browser. In case it's useful to see it by area:
+## Tech Stack & Development Processes
 
 - Backend and API design in Go: one daemon, a role-checked HTTP API with 81 documented routes, SQLite storage, and migrations that run on their own at startup.
 - Linux and networking: iptables, ipset and tc, a captive portal, WireGuard, hostapd, dnsmasq and systemd.
@@ -40,17 +37,15 @@ I've tried to use it as a chance to practise the whole path from kernel to brows
 - Testing: 266 passing tests, including golden-file tests for the generated firewall rules.
 - Operations: dry runs, backups, a staged cutover with automatic rollback, service supervision and health reports.
 
-## How it's operated safely
+## Safety Measures
 
-Since the source isn't here to run, I'll describe how the system is looked after instead.
+As the source isn't here to run, how the system is looked after is described below.
 
 Anything that touches the machine has a dry run first. Provisioning prints its plan. Migration shows what it would import. Cutover has a preflight step.
 
 Cutover takes backups, checks each step, and rolls itself back if it isn't confirmed within a few minutes. That lets me change a live gateway over SSH without worrying about locking myself out.
 
 The daemon owns its own firewall chains and loads them in a single `iptables-restore`, so applying them twice changes nothing. If the daemon restarts, it reapplies everything from its database.
-
-One habit worth mentioning: I don't switch the uplink from a connection that depends on the old uplink. A cable or the hotspot side is safer.
 
 ## Screenshots
 
@@ -88,7 +83,7 @@ The user console is the same app with fewer pages and none of the admin tools:
 | ![User overview](assets/screenshots/user-overview.png) | ![User services](assets/screenshots/user-services.png) | ![User videos](assets/screenshots/user-videos.png) | ![User on a phone](assets/screenshots/phone-user-overview.png) |
 | Overview | Services | Videos | Phone |
 
-The console also documents itself, including every HTTP endpoint with examples. I use a small script to check that no route has been left out.
+The console also documents itself, including every HTTP endpoint with examples.
 
 ![Documentation](assets/screenshots/api-reference.png)
 
@@ -132,19 +127,17 @@ There's a longer explanation in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 The firewall is never left half-applied. Rules go into chains the program owns and load in one `iptables-restore`. If loading fails, the previous rules stay in place. Golden-file tests cover the generated rules.
 
-Roles are deny-by-default. A user account can call a short list of routes and nothing else, so a new admin route is closed to users from the moment it exists. A test sends dozens of requests with a user's token and expects a refusal for every route that isn't on the list. The console hides what a user can't use, but the server is the one that refuses.
+Roles are deny-by-default. A user account can call a short list of routes and nothing else, so a new admin route is closed to users from the moment it exists. A test sends dozens of requests with a user's token and expects a refusal for every route that isn't on the list. The console hides what a user can't use and the server refuses the same.
 
 Sensitive changes ask for the admin password again, even when you're already signed in. Creating or deleting a guest code or a user works this way, with its own attempt limit.
 
-Getting a phone to open its login sheet took some care. Phones decide by fetching a known web address. The server sends an unauthorised guest's plain-HTTP traffic to the portal, and after sign-in it sends the phone back to that address so the sheet can close.
+Auto-launch captive portal on phones. The server sends an unauthorised guest's plain-HTTP traffic to the portal, and after sign-in it sends the phone back to that address so the sheet can close.
 
 On a Core 2 Duo, transcoding video isn't realistic. So the library repackages MKV to MP4 once, in the background, at the lowest priority, and keeps the result. The binaries are static with no libc dependency, so the old distribution's libraries don't get in the way.
 
 Age-gated categories are refused by every route that could expose them (titles, artwork, subtitles, files and direct links) until a session confirms its age. The protection lives on the server, not in the interface.
 
-The console has no build step. It uses plain ES modules, CSS variables for the themes, a hand-drawn icon set, and separate layouts for desktop and phone. No framework, no bundler and no CDN requests.
-
-### Bugs that taught me something
+### Bugs faced during development
 
 - A progress bar stuck at 0%. The server's older ffmpeg reports elapsed time under a different key than newer versions.
 - A console that wouldn't start after an update, because the browser paired a new script with a cached old one. The server now asks browsers to revalidate on every load.
@@ -162,9 +155,9 @@ The console has no build step. It uses plain ES modules, CSS variables for the t
 | Runs on | 32-bit Ubuntu 18.04 in production |
 | Dependencies | Go standard library, a pure-Go SQLite driver, bcrypt |
 
-## Stack
+## Stack Summary
 
-Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg and systemd. The front end is plain JavaScript and CSS, delivered as progressive web apps. I check the visuals in headless Chrome.
+Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg and systemd. The front end is plain JavaScript and CSS, delivered as progressive web apps.
 
 ## Read next
 
