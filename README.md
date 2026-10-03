@@ -2,17 +2,15 @@
 
 A Go daemon, a command-line tool and a web console that turn one small Linux server into a Wi-Fi gateway with a guest login page, a VPN, monitoring and a video library.
 
-Thank you for taking the time to look at it.
-
 ![Overview](assets/screenshots/overview-light.png)
 
-This repository is a showcase. It holds screenshots, diagrams and write-ups, and the source code is private. If you'd like to read the code, I'm happy to share it for review (contact details are at the bottom). Everything in the screenshots is sample data I made up.
+This repository is a showcase. It holds screenshots, diagrams and write-ups, and the source code is private. If you'd like to read the code, it's available for review on request (contact details are at the bottom). Everything in the screenshots is sample data I made up.
 
 ![A short tour of the console](assets/demo.gif)
 
 ## If you only have two minutes
 
-Watch the animation above, then look at the screenshots further down. The sections "What this project shows" and "Decisions I'm happy to discuss" are the quickest way to see how I work.
+Watch the animation above, then look at the screenshots further down. The sections "What this project shows" and "Design decisions" are the quickest way to see how I work.
 
 ## Why I built it
 
@@ -134,7 +132,7 @@ flowchart LR
 
 There's a longer explanation in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Decisions I'm happy to discuss
+## Design decisions
 
 The firewall is never left half-applied. Rules go into chains the program owns and load in one `iptables-restore`. If loading fails, the previous rules stay in place. Golden-file tests cover the generated rules.
 
@@ -184,8 +182,6 @@ Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg and 
 From Yashasvi Jaiswal. Source code is available for review on request.
 
 LinkedIn: [linkedin.com/in/yashjswl](https://www.linkedin.com/in/yashjswl/)
-
-Thank you again for reading.
 
 ---
 

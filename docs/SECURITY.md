@@ -1,6 +1,6 @@
 # Security design
 
-This page describes what the project was built to resist, and how. It stays at the design level because the source is private. Thank you for reading.
+This page describes what the project was built to resist, and how. It stays at the design level because the source is private.
 
 ## Context
 

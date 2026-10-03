@@ -1,6 +1,6 @@
 # Feature tour
 
-A walk through the project, area by area. All screenshots use sample data I made up. Thank you for reading.
+A walk through the project, area by area. All screenshots use sample data I made up.
 
 ## 1. The gateway
 
