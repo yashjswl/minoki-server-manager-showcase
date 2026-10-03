@@ -17,7 +17,7 @@ flowchart TB
   subgraph Daemon["minokid"]
     direction TB
     AUTH["Sessions, roles, password re-confirmation"]
-    API["HTTP API (81 documented routes)"]
+    API["HTTP API (86 documented routes)"]
     FW["Firewall engine"]
     PORTAL["Captive portal"]
     MEDIA["Media library"]

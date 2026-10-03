@@ -22,19 +22,20 @@ It shares an internet connection with devices on its own hotspot and manages acc
 - It builds the firewall rules and loads them in one step. You can block a device, limit its speed, or switch all sharing off with one master switch.
 - Guests see a sign-in page. Phones are redirected so their own login sheet opens. The admin can keep several four-digit codes at once and see how often each one is used.
 - WireGuard VPN with a watchdog, and switching between a Wi-Fi uplink and a wired one. It also notices when the uplink is behind a login page of its own, which a simple ping would call "online".
-- Live monitoring: traffic per interface, busiest processes, system meters, service health and an activity feed. Alerts can be spoken aloud.
+- Live monitoring: traffic per interface, busiest processes, system meters, service health and an activity feed. Alerts play recorded sounds, in English or Japanese.
+- The hotspot can run on the 2.4 or 5 GHz band, and each network adapter can be switched on or off from the console.
 - A provisioner that installs about fifteen supporting services, adopts ones that already exist instead of overwriting them, and can take over from the old setup with a rollback.
-- A video library with posters, series, resume, subtitles, and one-time repackaging of MKV files so browsers can play them.
+- A video library with posters, series, resume, subtitles, a choice of audio tracks, and one-time repackaging of MKV files so browsers can play them.
 - Two consoles behind one login: the full admin console, and a restricted one for users.
 - Installable phone apps. The console and the video library are separate progressive web apps (PWA).
 
 ## Tech Stack & Development Processes
 
-- Backend and API design in Go: one daemon, a role-checked HTTP API with 81 documented routes, SQLite storage, and migrations that run on their own at startup.
+- Backend and API design in Go: one daemon, a role-checked HTTP API with 86 documented routes, SQLite storage, and migrations that run on their own at startup.
 - Linux and networking: iptables, ipset and tc, a captive portal, WireGuard, hostapd, dnsmasq and systemd.
 - Security: hashed passwords and tokens, attempt limits, deny-by-default roles, and password re-confirmation for sensitive changes.
 - Front end: a plain JavaScript console with light and dark themes, separate desktop and phone layouts, and installable apps.
-- Testing: 266 passing tests, including golden-file tests for the generated firewall rules.
+- Testing: 273 passing tests, including golden-file tests for the generated firewall rules.
 - Operations: dry runs, backups, a staged cutover with automatic rollback, service supervision and health reports.
 
 ## Safety Measures
@@ -52,13 +53,13 @@ The daemon owns its own firewall chains and loads them in a single `iptables-res
 | | |
 |---|---|
 | ![Clients](assets/screenshots/clients.png) | ![Network](assets/screenshots/network.png) |
-| Clients, with block and speed limit | Network: uplink, sharing, speed test |
+| Clients, with block and speed limit | Network: uplink, sharing, adapters |
 | ![Hotspot access codes](assets/screenshots/hotspot-access-codes.png) | ![Settings and user management](assets/screenshots/settings-user-management.png) |
-| Guest access codes | User management |
+| Hotspot band and channel, guest access codes | User management |
 | ![Services](assets/screenshots/services.png) | ![System](assets/screenshots/system.png) |
 | Services and their health | System meters and power |
 | ![Alerts](assets/screenshots/alerts.png) | ![Logs](assets/screenshots/logs.png) |
-| Alerts and sound | Blocked connections |
+| Alerts, in English or Japanese | Blocked connections |
 
 The video library:
 
@@ -68,6 +69,8 @@ The video library:
 | Home, with continue watching | A series and its episodes |
 | ![Player](assets/screenshots/videos-player.png) | ![Episode management](assets/screenshots/videos-manage.png) |
 | Player, with subtitle timing | Edit, hide and regroup |
+| ![Audio tracks](assets/screenshots/videos-audio.png) | |
+| Choosing between audio tracks | |
 
 Dark theme, phone layouts and the guest portal:
 
@@ -135,6 +138,10 @@ Auto-launch captive portal on phones. The server sends an unauthorised guest's p
 
 On a Core 2 Duo, transcoding video isn't realistic. So the library repackages MKV to MP4 once, in the background, at the lowest priority, and keeps the result. The binaries are static with no libc dependency, so the old distribution's libraries don't get in the way.
 
+The hotspot band can be changed from the console. The change rewrites only the band and channel in the hotspot's configuration and restarts it. If the radio doesn't come up on the new band, the previous settings are restored automatically.
+
+An MKV with several audio tracks (for example Japanese and English) keeps the first one in the repackaged video. The others are extracted on demand into small audio files, and the player plays the chosen one beside the muted video, kept in step with it. Browsers can't switch audio tracks inside an MP4 reliably, and a second full copy of the video per language would take gigabytes.
+
 Age-gated categories are refused by every route that could expose them (titles, artwork, subtitles, files and direct links) until a session confirms its age. The protection lives on the server, not in the interface.
 
 ### Bugs faced during development
@@ -142,16 +149,17 @@ Age-gated categories are refused by every route that could expose them (titles, 
 - A progress bar stuck at 0%. The server's older ffmpeg reports elapsed time under a different key than newer versions.
 - A console that wouldn't start after an update, because the browser paired a new script with a cached old one. The server now asks browsers to revalidate on every load.
 - An nginx directive that isn't allowed inside `if`. I caught it by testing the configuration before reloading it.
+- 5 GHz was refused by the hotspot adapter on every channel. The cause was a signature check: the updated wireless regulatory database was signed with a newer key than the old `crda` tool trusts, so the country settings never applied. A driver option fixed it.
 - A progress bar stuck at 99%. It turned out to be a final pass of several minutes over a 1.5 GB file, so the player now says "Finishing up".
 
 ## The numbers
 
 | | |
 |---|---|
-| Go source | about 17,400 lines, 2 programs, 16 internal packages |
-| Go tests | about 7,700 lines, 266 passing |
-| Console JavaScript | about 4,100 lines, no framework |
-| HTTP API | 81 documented endpoints, all authenticated and role-checked |
+| Go source | about 18,100 lines, 2 programs, 16 internal packages |
+| Go tests | about 8,100 lines, 273 passing |
+| Console JavaScript | about 4,200 lines, no framework |
+| HTTP API | 86 documented endpoints, all authenticated and role-checked |
 | Runs on | 32-bit Ubuntu 18.04 in production |
 | Dependencies | Go standard library, a pure-Go SQLite driver, bcrypt |
 

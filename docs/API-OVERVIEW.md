@@ -16,12 +16,12 @@ Responses aren't cached. Sensitive changes take an extra `admin_password` field.
 |---|---|---|
 | Authentication and account | 4 | Sign in and out, who am I, change my own password |
 | Status and monitoring | 10 | System meters, throughput per interface, top applications, disks, fans, service health, activity feed, connectivity and public address, speed test |
-| Network control | 20 | Internet sharing, captive portal and session length, guest access codes (list, create, delete), user management (list, create, reset, delete), VPN, uplink and Wi-Fi, interfaces, settings, hotspot restart |
+| Network control | 23 | Internet sharing, captive portal and session length, guest access codes (list, create, delete), user management (list, create, reset, delete), VPN, uplink and Wi-Fi, interfaces and switching adapters on or off, hotspot band and channel, settings, hotspot restart |
 | Clients and devices | 7 | Devices on the network, names, blocking, speed limits, manual authorisation |
 | Logs, alerts and power | 7 | Blocked-connection log, sound and voice settings, a free-text note, reboot and shutdown |
-| Videos | 29 | Library, titles, streaming, posters, subtitles, progress, episode management, settings, artwork refresh |
+| Videos | 31 | Library, titles, streaming, posters, subtitles, progress, episode management, extra audio tracks, settings, artwork refresh |
 | Guest portal | 4 | Code verification, "am I authorised", a device's own address, and a tunnel-aware admin authorisation |
-| Total | 81 | |
+| Total | 86 | |
 
 ## Examples
 

@@ -10,6 +10,8 @@ Internet sharing is a single master switch. When it's off, the hotspot can't rea
 
 You can choose the uplink between the Wi-Fi and wired ports, scan for networks and connect. If the uplink Wi-Fi has a login page of its own, the console says so. A plain ping would report "online" in that case, which isn't quite true.
 
+The hotspot can run on the 2.4 GHz or the 5 GHz band. 5 GHz is faster and avoids the crowded 2.4 GHz band, with a shorter range. The console restarts the hotspot on the new band and puts the previous settings back if the radio won't start on it. Each network adapter also has an on/off switch, and a switched-off adapter stays off after a restart.
+
 For each device you can rename it, block it or limit its speed, and the limits survive a reboot.
 
 Until a device signs in, it can reach DHCP, DNS and the web server, and nothing else. An optional uplink shield also drops unsolicited inbound traffic. It always leaves the management ports open, so it can't lock the administrator out.
@@ -32,7 +34,7 @@ The Overview page shows the path to the internet (uplink, gateway, hotspot, clie
 
 The System page has per-resource detail, disks, interfaces and power actions that need a typed confirmation. Services lists the self-hosted apps with live status. Logs shows blocked connections, with a switch to hide routine chatter from other devices on the network.
 
-Alerts can be spoken or played as sounds for power, VPN and intrusion events. Language and volume are adjustable, and the volume can go past the hardware maximum.
+Alerts play recorded sounds for power, VPN and intrusion events, in English or Japanese. Language and volume are adjustable, and the volume can go past the hardware maximum.
 
 ![Overview](../assets/screenshots/overview-light.png)
 
@@ -44,7 +46,7 @@ Folders become categories. A folder of episodes becomes a series, and loose file
 
 How a file plays depends on the file. If the browser can play it, it plays directly. Otherwise it's repackaged to MP4 once in the background, with a progress bar that also covers the slower final pass. If that isn't possible either, a link opens it in an external player.
 
-Subtitles come from embedded streams, files next to the video, or an online search. A timing control helps when they're slightly out of sync. Watch progress is kept per user.
+Subtitles come from embedded streams, files next to the video, or an online search. A timing control helps when they're slightly out of sync. When a file has several audio tracks, an Audio menu lets you choose between them. The chosen track is prepared in the background while the video keeps playing, and then switches in. Watch progress is kept per user.
 
 Restricted (A-rated) categories stay hidden until a session confirms its age, and the server enforces this.
 
