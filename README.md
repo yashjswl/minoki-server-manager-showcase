@@ -8,10 +8,6 @@ This repository is a showcase. It holds screenshots, diagrams and write-ups, and
 
 ![A short tour of the console](assets/demo.gif)
 
-## If you only have two minutes
-
-Watch the animation above, then look at the screenshots further down. The sections "What this project shows" and "Design decisions" are the quickest way to see how I work.
-
 ## Why I built it
 
 The first version of this server was a set of PHP pages that ran `sudo` on bash scripts. Those scripts looked after the hotspot, the guest login, the firewall, the VPN and a few self-hosted apps. It worked, but passwords and a PIN were stored in the code, nothing was tested, and each change meant guessing what a script would do to the firewall.
