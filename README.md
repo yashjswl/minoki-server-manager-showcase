@@ -176,7 +176,9 @@ JavaScript (ES modules), CSS custom properties · Progressive Web Apps · headle
 
 ## Contact
 
-Built by **[yashjswl](https://github.com/yashjswl)**. Source code is available for review on request.
+From **Yashasvi Jaiswal**. Source code is available for review on request.
+
+LinkedIn: [linkedin.com/in/yashjswl](https://www.linkedin.com/in/yashjswl/)
 
 ---
 
