@@ -1,21 +1,18 @@
 # HTTP API overview
 
-Everything in the console is an API call, and the same API is available on a root-only unix socket for the
-command-line tool. The product documents every route with request fields, example responses and notes on its own
-Documentation page; this is the shape of it.
+Everything in the console is an API call. The command-line tool uses the same API over a root-only unix socket. The product documents each route, with request fields, example responses and notes, on its own Documentation page. This is the short version.
 
 ## Conventions
 
-- JSON in, JSON out. Sign in once for a bearer token, send it on every other call.
-- Success is `{"success": true}` or the new state (for example `{"enabled": true}`). Errors are `{"error": "..."}` with a
-  meaningful status: `400` bad input, `401` signed out, `403` not allowed (or wrong re-confirmed password), `404`, `409`
-  conflict, `429` rate limited, `502` an upstream service failed.
-- Responses are never cached. Sensitive changes take an extra `admin_password` field.
-- Two roles. A user gets a short allow-list and a `403` everywhere else.
+JSON in, JSON out. Sign in once, get a bearer token, send it on every other call.
+
+Success is `{"success": true}`, or the new state, like `{"enabled": true}`. Errors are `{"error": "..."}` with a status that means something: 400 for bad input, 401 when you're signed out, 403 when you're not allowed (or typed the wrong re-confirmed password), 404, 409 for a conflict, 429 when rate limited, 502 when an upstream service failed.
+
+Nothing is cached. Sensitive changes take an extra `admin_password` field. There are two roles, and a user gets a short allow-list and a 403 on everything else.
 
 ## Route families
 
-| Family | Routes | What it covers |
+| Family | Routes | What's in it |
 |---|---|---|
 | Authentication and account | 4 | Sign in and out, who am I, change my own password |
 | Status and monitoring | 10 | System meters, throughput per interface, top applications, disks, fans, service health, activity feed, connectivity and public address, speed test |
@@ -24,7 +21,7 @@ Documentation page; this is the shape of it.
 | Logs, alerts and power | 7 | Blocked-connection log, sound and voice settings, a free-text note, reboot and shutdown |
 | Videos | 29 | Library, titles, streaming, posters, subtitles, progress, episode management, settings, artwork refresh |
 | Guest portal | 4 | Code verification, "am I authorised", a device's own address, and a tunnel-aware admin authorisation |
-| **Total** | **81** | |
+| Total | 81 | |
 
 ## Examples
 
@@ -59,7 +56,7 @@ POST /api/portal/codes
 200 {"code": {"id": "…", "label": "Workshop attendees", "code": "7305", "uses": 0, "last_used": 0}}
 ```
 
-A user account calling an administrator route:
+A user account calling an admin route:
 
 ```http
 GET /api/clients

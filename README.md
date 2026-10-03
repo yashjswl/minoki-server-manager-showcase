@@ -1,87 +1,81 @@
 # Minoki Server Manager
 
-**A Wi-Fi gateway, captive portal, VPN and self-hosted-cloud control plane for one small Linux server.**
-One static Go daemon, a command-line tool, and a full web console that installs on a phone like a native app.
+A Go daemon, a command-line tool and a web console that turn one small Linux box into a Wi-Fi gateway with a guest login page, a VPN, monitoring and a video library.
 
 ![Overview](assets/screenshots/overview-light.png)
 
-> **About this repository.** This is a showcase of a private project: write-ups, diagrams and screenshots only.
-> The source code is not published and is not licensed for reuse (see [LICENSE](LICENSE)).
-> It is available to recruiters and engineers on request, for evaluation. All names, devices, addresses and videos in
-> the screenshots are invented sample data.
+This repo is only the write-up: screenshots, diagrams and notes. The source is private and isn't licensed for reuse (see [LICENSE](LICENSE)). If you want to read it, ask. Contact details are at the bottom. Every name, device, address and video in the screenshots is made up.
 
 ![A tour of the console](assets/demo.gif)
 
----
+## Why it exists
 
-## The problem
+The first version was a pile of PHP pages that ran `sudo` on bash scripts. Those scripts handled the hotspot, the guest login, the firewall, the VPN and a few self-hosted apps. Passwords and a PIN sat in the code. There were no tests, so every change was a guess about what a script would do to the firewall.
 
-The first version of this server was a set of PHP pages that called `sudo` on bash scripts to run a hotspot, a guest
-login page, a firewall, a VPN and a few self-hosted apps. Secrets lived in the code, nothing was tested, and nobody could
-change it safely.
-
-Minoki Server Manager replaces all of that with one program you can reason about. It owns the firewall, the guest
-portal, the VPN, monitoring, service health and a video library, exposes everything through one authenticated API,
-and ships a console designed like professional network software.
-
-It runs in production on a **32-bit Ubuntu 18.04 machine** (a Core 2 Duo with 2 GB of RAM), which shaped many of the
-engineering decisions below.
+I replaced it with one program that owns the firewall and everything around it, with a single authenticated API in front. It's in production on a 32-bit Ubuntu 18.04 machine with a Core 2 Duo and 2 GB of RAM. The box is old and small, and that shaped a lot of the decisions below.
 
 ## What it does
 
-| Area | Highlights |
-|---|---|
-| **Gateway and firewall** | Declarative rules applied atomically, so the firewall is never half-configured. Per-device block and speed limits, a master kill switch, a WAN shield, and trusted-peer rules tied to interface, address and MAC together. |
-| **Captive portal** | Guests enter an access code before they get internet. Unauthorised devices are redirected so the sign-in sheet is meant to open by itself (it follows the probe addresses iOS, Android and Windows use). Several four-digit codes, per-code usage, sessions that expire, and admin-password re-confirmation for changes. |
-| **VPN and uplink** | WireGuard on/off with a watchdog, switchable Wi-Fi or wired uplink, and detection of hotspot login walls that fool a simple ping. |
-| **Monitoring and alerts** | Live throughput, top applications, system meters, an activity feed, a service doctor, and spoken or audible alerts for power, VPN and intrusion events. |
-| **Provisioning** | Installs and configures about fifteen services idempotently, adopts what is already installed instead of overwriting it, and migrates from the old stack with a staged, reversible cutover and automatic rollback. |
-| **Video library** | A streaming-style library with posters, series, resume, subtitles (embedded, sidecar and searched online), and one-time repackaging of MKV files so browsers can play them. |
-| **Two consoles** | An administrator console and a smaller **user console** (Overview, Services, Videos, Settings) behind the same login, enforced on the server. |
-| **Installable apps** | The console and the Video library are separate installable PWAs with their own icons. |
+It shares an internet connection with devices on its own hotspot, and it controls who gets through.
+
+- Firewall rules, applied in one go. Per-device blocking and speed limits, a master kill switch, and a shield for the uplink side.
+- A guest portal. Unknown devices get a sign-in page, and phones are redirected so their login sheet opens on its own. The admin keeps several four-digit codes at once and sees how often each is used.
+- WireGuard VPN with a watchdog, plus switching between a Wi-Fi uplink and a wired one. It also spots uplinks that sit behind their own login page, which a plain ping reports as "online".
+- Live monitoring: traffic per interface, top processes, meters, service health, an activity feed. Alerts can be spoken out loud.
+- A provisioner that installs about fifteen services, adopts the ones already there instead of overwriting them, and can take over from the old setup with a rollback.
+- A video library with posters, series, resume, subtitles and one-time MKV repackaging.
+- Two consoles behind one login: the full admin one, and a smaller one for ordinary users.
+- Installable phone apps. The console and the video library are separate PWAs.
+
+## Running it without breaking it
+
+You can't run this from here, since there's no source. But the way it gets operated is part of the design, so here's the short version.
+
+Anything that touches the system has a dry run first. Provisioning prints a plan. Migration shows what it would import. Cutover has a preflight step.
+
+Cutover backs up the old setup, checks each step, and rolls itself back if you don't confirm within a few minutes. That's the part that lets you change a live gateway over SSH without locking yourself out.
+
+The daemon owns its own firewall chains and loads them in a single `iptables-restore`. Apply them twice and nothing changes. Restart the daemon and it reapplies everything from its database.
+
+One rule of thumb: don't switch the uplink from a connection that depends on the old uplink. Use a cable or the hotspot side.
 
 ## Screenshots
 
 | | |
 |---|---|
 | ![Clients](assets/screenshots/clients.png) | ![Network](assets/screenshots/network.png) |
-| **Clients:** every device, with block and speed limit | **Network:** uplink, sharing, speed test |
+| Clients, with block and speed limit | Network: uplink, sharing, speed test |
 | ![Hotspot access codes](assets/screenshots/hotspot-access-codes.png) | ![Settings and user management](assets/screenshots/settings-user-management.png) |
-| **Guest access codes:** several codes, each with usage | **User management:** create sign-ins, reset, delete |
+| Guest access codes | User management |
 | ![Services](assets/screenshots/services.png) | ![System](assets/screenshots/system.png) |
-| **Services:** the self-hosted apps and their health | **System:** meters, disks, interfaces, power |
+| Services and their health | System meters and power |
 | ![Alerts](assets/screenshots/alerts.png) | ![Logs](assets/screenshots/logs.png) |
-| **Alerts and sound:** spoken and audible alerts | **Logs:** blocked connections, filterable |
+| Alerts and sound | Blocked connections |
 
-### The video library
+The video library:
 
 | | |
 |---|---|
 | ![Library home](assets/screenshots/videos-home.png) | ![Series and episodes](assets/screenshots/videos-series.png) |
-| **Library:** continue watching, rows, search | **Series:** episodes, progress, watched marks |
+| Home, with continue watching | A series and its episodes |
 | ![Player](assets/screenshots/videos-player.png) | ![Episode management](assets/screenshots/videos-manage.png) |
-| **Player:** subtitles with timing adjustment | **Manage:** edit, hide, regroup, bulk actions |
+| Player, with subtitle timing | Edit, hide, regroup |
 
-### Light, dark and phone
+Dark theme, phone layouts and the guest portal:
 
 | | | | |
 |---|---|---|---|
 | ![Dark](assets/screenshots/overview-dark.png) | ![Phone overview](assets/screenshots/phone-overview.png) | ![Phone videos](assets/screenshots/phone-videos.png) | ![Guest portal](assets/screenshots/phone-portal.png) |
-| Dark theme | Phone layout | Phone video library | Guest portal on a phone |
+| Dark | Phone | Phone videos | Guest portal |
 
-### The user console
-
-The same app and the same look, with a smaller set of pages and none of the administrator's tools:
+The user console is the same app with fewer pages and none of the admin tools:
 
 | | | | |
 |---|---|---|---|
 | ![User overview](assets/screenshots/user-overview.png) | ![User services](assets/screenshots/user-services.png) | ![User videos](assets/screenshots/user-videos.png) | ![User on a phone](assets/screenshots/phone-user-overview.png) |
-| Overview | Services (five apps) | Videos (watching only) | On a phone |
+| Overview | Services | Videos | Phone |
 
-### Documentation inside the product
-
-The console contains its own documentation page (guide, command-line reference, settings, and every HTTP endpoint with
-examples). A script checks that no endpoint is left undocumented.
+The console documents itself, including every HTTP endpoint with examples. I check with a small script that no route is missing.
 
 ![Documentation](assets/screenshots/api-reference.png)
 
@@ -119,64 +113,56 @@ flowchart LR
   M --> DB
 ```
 
-More detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Engineering decisions worth reading about
+## Decisions I'd talk about in an interview
 
-- **The firewall is applied atomically.** Rules live in chains the program owns and are loaded in one
-  `iptables-restore`, so a failure cannot leave the machine half-configured. The generated rules are covered by
-  golden-file tests, and applying them twice is a no-op.
-- **Roles are deny-by-default.** A "user" account may call a short allow-list of routes and nothing else, so a new
-  administrator route is safe the moment it exists. A test walks dozens of routes, existing and not, to prove it. The console hides what a
-  user cannot use, but the server is what actually refuses.
-- **Sensitive actions re-ask for the password.** Creating or deleting a guest code or a user needs the
-  administrator's password again, with a separate attempt limit, even when already signed in.
-- **Captive-portal detection that really works.** Phones decide whether to open a login sheet by probing a known web
-  address. The server redirects unauthorised guests' plain-HTTP traffic to the portal, and after sign-in sends the phone
-  back to the probe address so the sheet closes by itself.
-- **Takeover without downtime.** A staged cutover from the old system takes backups, verifies each step, and rolls back
-  automatically if you do not confirm in time.
-- **Built for a tiny machine.** Static, CGO-free binaries (no libc dependency); heavy jobs run at the lowest CPU and disk
-  priority, one at a time. Rather than transcode video on an old CPU, the library remuxes to MP4 once and caches it.
-- **Server-side age gating.** Restricted categories are refused by every route (titles, artwork, subtitles, files, direct
-  links) until a session confirms its age. Hiding them in the UI is never the only protection.
-- **A console with no build step.** Plain ES modules, a token-based design system with light and dark themes, an
-  authored icon set, and different layouts for desktop and phone. No framework, no bundler, no CDN requests.
+The firewall is never half-applied. Rules go into chains the program owns and load in one `iptables-restore`. If it fails, the old rules stay. Golden-file tests cover the generated rules.
+
+Roles are deny-by-default. A user account can call a short list of routes and nothing else, so a new admin route is closed to users the moment it exists. A test fires dozens of routes at a user token and expects a 403 on every one that isn't on the list. The console hides what a user can't use, but the server is what refuses.
+
+Sensitive changes ask for the admin password again, even when you're signed in. Creating or deleting a guest code or a user does this, with its own attempt limit.
+
+Getting a phone to open its login sheet is fiddly. Phones decide by fetching a known web address. The server sends unauthorised guests' plain-HTTP traffic to the portal, and after sign-in it sends the phone back to that address so the sheet closes.
+
+On a Core 2 Duo, transcoding video isn't an option. So the library repackages MKV to MP4 once, in the background, at the lowest priority, and caches the result. The binaries are static with no libc dependency, so the old distro's libraries don't matter.
+
+Age-gated categories are refused by every route that could leak them (titles, artwork, subtitles, files, direct links) until a session confirms its age. Hiding them in the UI isn't the protection.
+
+The console has no build step. Plain ES modules, CSS variables for the light and dark themes, a hand-drawn icon set, and separate layouts for desktop and phone. No framework, no bundler, no CDN requests.
 
 ### Bugs that taught me something
 
-- A progress bar stuck at **0%**: the server's older ffmpeg reports time under a different key than newer versions.
-- A console that **would not start after an update**: the browser paired a new script with a cached old one. The fix was
-  making the server ask browsers to revalidate on every load.
-- A nginx directive that **is not allowed inside `if`**, found by testing a config before reloading it.
-- A **99%** that was really a minutes-long final pass over a 1.5 GB file, now shown as "Finishing up".
+- A progress bar stuck at 0%. The server's old ffmpeg reports elapsed time under a different key than new versions do.
+- A console that wouldn't start after an update. The browser paired a new script with a cached old one. Now the server tells browsers to revalidate every time.
+- An nginx directive that isn't allowed inside `if`. I found it by testing the config before reloading.
+- A progress bar stuck at 99%. It was a minutes-long final pass over a 1.5 GB file. The player now says "Finishing up".
 
-## By the numbers
+## The numbers
 
 | | |
 |---|---|
-| Go source | about 17,400 lines, in 2 programs and 16 internal packages |
-| Go tests | about 7,700 lines, **266 passing tests** |
-| Console (JavaScript) | about 4,100 lines, no framework |
-| HTTP API | **81 documented endpoints**, authenticated and role-checked |
-| Runs on | 32-bit Ubuntu 18.04 in production; builds as a static binary for other Linux targets |
+| Go source | about 17,400 lines, 2 programs, 16 internal packages |
+| Go tests | about 7,700 lines, 266 passing |
+| Console JavaScript | about 4,100 lines, no framework |
+| HTTP API | 81 documented endpoints, all authenticated and role-checked |
+| Runs on | 32-bit Ubuntu 18.04 in production |
 | Dependencies | Go standard library, a pure-Go SQLite driver, bcrypt |
 
-## Tech
+## Stack
 
-Go · SQLite · iptables, ipset and tc · WireGuard · hostapd and dnsmasq · nginx · ffmpeg · systemd ·
-JavaScript (ES modules), CSS custom properties · Progressive Web Apps · headless Chrome for visual testing.
+Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg, systemd. The front end is plain JavaScript and CSS, delivered as PWAs. Visual checks run in headless Chrome.
 
-## Where to go next
+## Read next
 
-1. [docs/FEATURES.md](docs/FEATURES.md): a guided tour of every area.
-2. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the pieces fit, with diagrams.
-3. [docs/SECURITY.md](docs/SECURITY.md): the threat model and the controls.
-4. [docs/API-OVERVIEW.md](docs/API-OVERVIEW.md): the shape of the HTTP API.
+- [Feature tour](docs/FEATURES.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Security design](docs/SECURITY.md)
+- [API overview](docs/API-OVERVIEW.md)
 
 ## Contact
 
-From **Yashasvi Jaiswal**. Source code is available for review on request.
+From Yashasvi Jaiswal. Source code is available for review on request.
 
 LinkedIn: [linkedin.com/in/yashjswl](https://www.linkedin.com/in/yashjswl/)
 
