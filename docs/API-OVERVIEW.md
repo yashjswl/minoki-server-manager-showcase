@@ -1,14 +1,14 @@
 # HTTP API overview
 
-Everything in the console is an API call. The command-line tool uses the same API over a root-only unix socket. The product documents each route, with request fields, example responses and notes, on its own Documentation page. This is the short version.
+Everything in the console is an API call, and the command-line tool uses the same API over a root-only unix socket. The product documents each route (request fields, example responses and notes) on its own Documentation page. This is the short version.
 
 ## Conventions
 
-JSON in, JSON out. Sign in once, get a bearer token, send it on every other call.
+Requests and responses are JSON. You sign in once, receive a bearer token, and send it with every other call.
 
-Success is `{"success": true}`, or the new state, like `{"enabled": true}`. Errors are `{"error": "..."}` with a status that means something: 400 for bad input, 401 when you're signed out, 403 when you're not allowed (or typed the wrong re-confirmed password), 404, 409 for a conflict, 429 when rate limited, 502 when an upstream service failed.
+Success is `{"success": true}`, or the new state, such as `{"enabled": true}`. Errors are `{"error": "..."}` with a status code that means something: 400 for bad input, 401 when signed out, 403 when not allowed (or when the re-confirmed password was wrong), 404, 409 for a conflict, 429 when rate limited, and 502 when an upstream service failed.
 
-Nothing is cached. Sensitive changes take an extra `admin_password` field. There are two roles, and a user gets a short allow-list and a 403 on everything else.
+Responses aren't cached. Sensitive changes take an extra `admin_password` field. There are two roles. A user account has a short allow-list and receives a 403 for everything else.
 
 ## Route families
 
@@ -25,7 +25,7 @@ Nothing is cached. Sensitive changes take an extra `admin_password` field. There
 
 ## Examples
 
-Sign in:
+Signing in:
 
 ```http
 POST /api/login
@@ -47,7 +47,7 @@ Authorization: Bearer …
 }
 ```
 
-Create a guest access code (the password is asked again):
+Creating a guest access code (the password is asked for again):
 
 ```http
 POST /api/portal/codes

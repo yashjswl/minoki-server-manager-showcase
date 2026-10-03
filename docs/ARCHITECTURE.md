@@ -1,6 +1,6 @@
 # Architecture
 
-One root daemon (`minokid`), one command-line tool (`minoki`), and a static web console that nginx serves. The console reads and changes everything through the daemon's HTTP API. Nothing else touches the system.
+The system has one root daemon (`minokid`), one command-line tool (`minoki`) and a static web console served by nginx. The console reads and changes everything through the daemon's HTTP API, and nothing else touches the system.
 
 ## The shape of it
 
@@ -46,13 +46,13 @@ flowchart TB
 | Piece | Job |
 |---|---|
 | Firewall engine | Takes the desired state (sharing, portal, VPN, blocked devices, trusted peers), builds one rule set for the chains it owns, loads it in one go, and reapplies it after a reboot or a firewall restart. |
-| Captive portal | Checks access codes (rate limited), finds a guest's MAC from the neighbour table, adds it to a timed allow-list, and tells tunnel visitors apart from hotspot guests. |
-| Media library | Scans a folder, probes files, works out how each one plays in a browser, repackages MKV in the background, finds posters and subtitles, and serves video with range requests. |
-| Provisioner | Installs and configures supporting services in dependency order. It adopts what's already there, backs up any file it rewrites, and has a dry run. |
-| Cutover | Takes over from the old system in steps: preflight, apply, confirm. If you don't confirm in time, it rolls back. |
+| Captive portal | Checks access codes (rate limited), finds a guest's MAC address from the neighbour table, adds it to a timed allow-list, and tells tunnel visitors apart from hotspot guests. |
+| Media library | Scans a folder, probes files, works out how each plays in a browser, repackages MKV in the background, finds posters and subtitles, and serves video with range requests. |
+| Provisioner | Installs and configures supporting services in dependency order. It adopts what's already there, backs up any file it rewrites, and offers a dry run. |
+| Cutover | Takes over from the old system in steps: preflight, apply, confirm. If it isn't confirmed in time, it rolls back. |
 | Supervisor | Watches every managed service and restarts failures with backoff. It also feeds the "doctor" report. |
-| Watchdogs and alerts | Keep the hotspot radio and the VPN up, spot attacks in the firewall log, and say things out loud when they happen. |
-| Auth and roles | Hashed passwords and session tokens, two roles, deny-by-default route access, attempt limits. |
+| Watchdogs and alerts | Keep the hotspot radio and the VPN up, spot attacks in the firewall log, and announce events out loud. |
+| Auth and roles | Hashed passwords and session tokens, two roles, deny-by-default route access and attempt limits. |
 
 ## A guest joins the hotspot
 
@@ -73,7 +73,7 @@ sequenceDiagram
   Note over P: the OS sees "Success" and closes the sheet
 ```
 
-## Every request gets checked
+## How every request is checked
 
 ```mermaid
 flowchart LR
@@ -93,12 +93,12 @@ flowchart LR
 
 ## Data
 
-One SQLite file holds settings, devices, accounts, sessions, access codes, the media index, per-user watch progress and the hand edits people make to the library. Hand edits get their own tables. That means a rescan never undoes them, and the media files are never modified.
+One SQLite file holds settings, devices, accounts, sessions, access codes, the media index, per-user watch progress and the hand edits people make to the library. Hand edits live in their own tables, so a rescan never undoes them and the media files are never modified.
 
-The database upgrades itself when the daemon starts. An update is: replace the program, restart it.
+The database upgrades itself when the daemon starts, so an update is simply: replace the program and restart it.
 
 ## Why a daemon and not scripts
 
-Scripts each change a little bit of the firewall, and nobody can say what the sum looks like. A daemon decides the whole state in one place.
+With scripts, each one changes a small part of the firewall, and it's hard to say what the sum looks like. A daemon decides the whole state in one place.
 
-Every action is a validated API call with tests, instead of a web page building a shell command. And it can check itself: dry runs, health reports, rollbacks.
+Every action is a validated API call with tests, instead of a web page building a shell command. The daemon can also check itself, through dry runs, health reports and rollbacks.

@@ -1,43 +1,62 @@
 # Minoki Server Manager
 
-A Go daemon, a command-line tool and a web console that turn one small Linux box into a Wi-Fi gateway with a guest login page, a VPN, monitoring and a video library.
+A Go daemon, a command-line tool and a web console that turn one small Linux server into a Wi-Fi gateway with a guest login page, a VPN, monitoring and a video library.
+
+Thank you for taking the time to look at it.
 
 ![Overview](assets/screenshots/overview-light.png)
 
-This repo is only the write-up: screenshots, diagrams and notes. The source is private and isn't licensed for reuse (see [LICENSE](LICENSE)). If you want to read it, ask. Contact details are at the bottom. Every name, device, address and video in the screenshots is made up.
+This repository is a showcase. It holds screenshots, diagrams and write-ups, and the source code is private. If you'd like to read the code, I'm happy to share it for review (contact details are at the bottom). Everything in the screenshots is sample data I made up.
 
-![A tour of the console](assets/demo.gif)
+![A short tour of the console](assets/demo.gif)
 
-## Why it exists
+## If you only have two minutes
 
-The first version was a pile of PHP pages that ran `sudo` on bash scripts. Those scripts handled the hotspot, the guest login, the firewall, the VPN and a few self-hosted apps. Passwords and a PIN sat in the code. There were no tests, so every change was a guess about what a script would do to the firewall.
+Watch the animation above, then look at the screenshots further down. The sections "What this project shows" and "Decisions I'm happy to discuss" are the quickest way to see how I work.
 
-I replaced it with one program that owns the firewall and everything around it, with a single authenticated API in front. It's in production on a 32-bit Ubuntu 18.04 machine with a Core 2 Duo and 2 GB of RAM. The box is old and small, and that shaped a lot of the decisions below.
+## Why I built it
+
+The first version of this server was a set of PHP pages that ran `sudo` on bash scripts. Those scripts looked after the hotspot, the guest login, the firewall, the VPN and a few self-hosted apps. It worked, but passwords and a PIN were stored in the code, nothing was tested, and each change meant guessing what a script would do to the firewall.
+
+I wanted something I could change with confidence. So I replaced it with a single program that owns the firewall and everything around it, with one authenticated API in front.
+
+It runs in production on an old, small machine: 32-bit Ubuntu 18.04 on a Core 2 Duo with 2 GB of RAM. That limit shaped many of the choices described below.
 
 ## What it does
 
-It shares an internet connection with devices on its own hotspot, and it controls who gets through.
+It shares an internet connection with devices on its own hotspot and decides who is allowed through.
 
-- Firewall rules, applied in one go. Per-device blocking and speed limits, a master kill switch, and a shield for the uplink side.
-- A guest portal. Unknown devices get a sign-in page, and phones are redirected so their login sheet opens on its own. The admin keeps several four-digit codes at once and sees how often each is used.
-- WireGuard VPN with a watchdog, plus switching between a Wi-Fi uplink and a wired one. It also spots uplinks that sit behind their own login page, which a plain ping reports as "online".
-- Live monitoring: traffic per interface, top processes, meters, service health, an activity feed. Alerts can be spoken out loud.
-- A provisioner that installs about fifteen services, adopts the ones already there instead of overwriting them, and can take over from the old setup with a rollback.
-- A video library with posters, series, resume, subtitles and one-time MKV repackaging.
-- Two consoles behind one login: the full admin one, and a smaller one for ordinary users.
-- Installable phone apps. The console and the video library are separate PWAs.
+- It builds the firewall rules and loads them in one step. You can block a device, limit its speed, or switch all sharing off with one master switch.
+- Guests see a sign-in page. Phones are redirected so their own login sheet opens. The admin can keep several four-digit codes at once and see how often each one is used.
+- WireGuard VPN with a watchdog, and switching between a Wi-Fi uplink and a wired one. It also notices when the uplink is behind a login page of its own, which a simple ping would call "online".
+- Live monitoring: traffic per interface, busiest processes, system meters, service health and an activity feed. Alerts can be spoken aloud.
+- A provisioner that installs about fifteen supporting services, adopts ones that already exist instead of overwriting them, and can take over from the old setup with a rollback.
+- A video library with posters, series, resume, subtitles, and one-time repackaging of MKV files so browsers can play them.
+- Two consoles behind one login: the full admin console, and a smaller one for ordinary users.
+- Installable phone apps. The console and the video library are separate progressive web apps.
 
-## Running it without breaking it
+## What this project shows
 
-You can't run this from here, since there's no source. But the way it gets operated is part of the design, so here's the short version.
+I've tried to use it as a chance to practise the whole path from kernel to browser. In case it's useful to see it by area:
 
-Anything that touches the system has a dry run first. Provisioning prints a plan. Migration shows what it would import. Cutover has a preflight step.
+- Backend and API design in Go: one daemon, a role-checked HTTP API with 81 documented routes, SQLite storage, and migrations that run on their own at startup.
+- Linux and networking: iptables, ipset and tc, a captive portal, WireGuard, hostapd, dnsmasq and systemd.
+- Security: hashed passwords and tokens, attempt limits, deny-by-default roles, and password re-confirmation for sensitive changes.
+- Front end: a plain JavaScript console with light and dark themes, separate desktop and phone layouts, and installable apps.
+- Testing: 266 passing tests, including golden-file tests for the generated firewall rules.
+- Operations: dry runs, backups, a staged cutover with automatic rollback, service supervision and health reports.
 
-Cutover backs up the old setup, checks each step, and rolls itself back if you don't confirm within a few minutes. That's the part that lets you change a live gateway over SSH without locking yourself out.
+## How it's operated safely
 
-The daemon owns its own firewall chains and loads them in a single `iptables-restore`. Apply them twice and nothing changes. Restart the daemon and it reapplies everything from its database.
+Since the source isn't here to run, I'll describe how the system is looked after instead.
 
-One rule of thumb: don't switch the uplink from a connection that depends on the old uplink. Use a cable or the hotspot side.
+Anything that touches the machine has a dry run first. Provisioning prints its plan. Migration shows what it would import. Cutover has a preflight step.
+
+Cutover takes backups, checks each step, and rolls itself back if it isn't confirmed within a few minutes. That lets me change a live gateway over SSH without worrying about locking myself out.
+
+The daemon owns its own firewall chains and loads them in a single `iptables-restore`, so applying them twice changes nothing. If the daemon restarts, it reapplies everything from its database.
+
+One habit worth mentioning: I don't switch the uplink from a connection that depends on the old uplink. A cable or the hotspot side is safer.
 
 ## Screenshots
 
@@ -59,7 +78,7 @@ The video library:
 | ![Library home](assets/screenshots/videos-home.png) | ![Series and episodes](assets/screenshots/videos-series.png) |
 | Home, with continue watching | A series and its episodes |
 | ![Player](assets/screenshots/videos-player.png) | ![Episode management](assets/screenshots/videos-manage.png) |
-| Player, with subtitle timing | Edit, hide, regroup |
+| Player, with subtitle timing | Edit, hide and regroup |
 
 Dark theme, phone layouts and the guest portal:
 
@@ -75,7 +94,7 @@ The user console is the same app with fewer pages and none of the admin tools:
 | ![User overview](assets/screenshots/user-overview.png) | ![User services](assets/screenshots/user-services.png) | ![User videos](assets/screenshots/user-videos.png) | ![User on a phone](assets/screenshots/phone-user-overview.png) |
 | Overview | Services | Videos | Phone |
 
-The console documents itself, including every HTTP endpoint with examples. I check with a small script that no route is missing.
+The console also documents itself, including every HTTP endpoint with examples. I use a small script to check that no route has been left out.
 
 ![Documentation](assets/screenshots/api-reference.png)
 
@@ -113,30 +132,30 @@ flowchart LR
   M --> DB
 ```
 
-More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+There's a longer explanation in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Decisions I'd talk about in an interview
+## Decisions I'm happy to discuss
 
-The firewall is never half-applied. Rules go into chains the program owns and load in one `iptables-restore`. If it fails, the old rules stay. Golden-file tests cover the generated rules.
+The firewall is never left half-applied. Rules go into chains the program owns and load in one `iptables-restore`. If loading fails, the previous rules stay in place. Golden-file tests cover the generated rules.
 
-Roles are deny-by-default. A user account can call a short list of routes and nothing else, so a new admin route is closed to users the moment it exists. A test fires dozens of routes at a user token and expects a 403 on every one that isn't on the list. The console hides what a user can't use, but the server is what refuses.
+Roles are deny-by-default. A user account can call a short list of routes and nothing else, so a new admin route is closed to users from the moment it exists. A test sends dozens of requests with a user's token and expects a refusal for every route that isn't on the list. The console hides what a user can't use, but the server is the one that refuses.
 
-Sensitive changes ask for the admin password again, even when you're signed in. Creating or deleting a guest code or a user does this, with its own attempt limit.
+Sensitive changes ask for the admin password again, even when you're already signed in. Creating or deleting a guest code or a user works this way, with its own attempt limit.
 
-Getting a phone to open its login sheet is fiddly. Phones decide by fetching a known web address. The server sends unauthorised guests' plain-HTTP traffic to the portal, and after sign-in it sends the phone back to that address so the sheet closes.
+Getting a phone to open its login sheet took some care. Phones decide by fetching a known web address. The server sends an unauthorised guest's plain-HTTP traffic to the portal, and after sign-in it sends the phone back to that address so the sheet can close.
 
-On a Core 2 Duo, transcoding video isn't an option. So the library repackages MKV to MP4 once, in the background, at the lowest priority, and caches the result. The binaries are static with no libc dependency, so the old distro's libraries don't matter.
+On a Core 2 Duo, transcoding video isn't realistic. So the library repackages MKV to MP4 once, in the background, at the lowest priority, and keeps the result. The binaries are static with no libc dependency, so the old distribution's libraries don't get in the way.
 
-Age-gated categories are refused by every route that could leak them (titles, artwork, subtitles, files, direct links) until a session confirms its age. Hiding them in the UI isn't the protection.
+Age-gated categories are refused by every route that could expose them (titles, artwork, subtitles, files and direct links) until a session confirms its age. The protection lives on the server, not in the interface.
 
-The console has no build step. Plain ES modules, CSS variables for the light and dark themes, a hand-drawn icon set, and separate layouts for desktop and phone. No framework, no bundler, no CDN requests.
+The console has no build step. It uses plain ES modules, CSS variables for the themes, a hand-drawn icon set, and separate layouts for desktop and phone. No framework, no bundler and no CDN requests.
 
 ### Bugs that taught me something
 
-- A progress bar stuck at 0%. The server's old ffmpeg reports elapsed time under a different key than new versions do.
-- A console that wouldn't start after an update. The browser paired a new script with a cached old one. Now the server tells browsers to revalidate every time.
-- An nginx directive that isn't allowed inside `if`. I found it by testing the config before reloading.
-- A progress bar stuck at 99%. It was a minutes-long final pass over a 1.5 GB file. The player now says "Finishing up".
+- A progress bar stuck at 0%. The server's older ffmpeg reports elapsed time under a different key than newer versions.
+- A console that wouldn't start after an update, because the browser paired a new script with a cached old one. The server now asks browsers to revalidate on every load.
+- An nginx directive that isn't allowed inside `if`. I caught it by testing the configuration before reloading it.
+- A progress bar stuck at 99%. It turned out to be a final pass of several minutes over a 1.5 GB file, so the player now says "Finishing up".
 
 ## The numbers
 
@@ -151,7 +170,11 @@ The console has no build step. Plain ES modules, CSS variables for the light and
 
 ## Stack
 
-Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg, systemd. The front end is plain JavaScript and CSS, delivered as PWAs. Visual checks run in headless Chrome.
+Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg and systemd. The front end is plain JavaScript and CSS, delivered as progressive web apps. I check the visuals in headless Chrome.
+
+## Known limits and next steps
+
+It isn't finished, and I'd rather say so. I'd like to test the phone sign-in sheet on more devices than I've had access to. There's no installer package yet, since I currently deploy by copying files. And the recorded alert sounds aren't part of the project files.
 
 ## Read next
 
@@ -165,6 +188,8 @@ Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg, sys
 From Yashasvi Jaiswal. Source code is available for review on request.
 
 LinkedIn: [linkedin.com/in/yashjswl](https://www.linkedin.com/in/yashjswl/)
+
+Thank you again for reading.
 
 ---
 
