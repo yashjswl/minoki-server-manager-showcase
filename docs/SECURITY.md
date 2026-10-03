@@ -24,12 +24,3 @@ The server sits between untrusted guests and the internet, and it also holds per
 | Old and new front-end code mixing after an update | Static files are revalidated on every load. |
 | Cross-site requests | State-changing calls need a bearer token, which a foreign page can't send. Cookies are accepted only for read-only media fetches from the same site. |
 | Locking yourself out while changing the firewall | Cutover works in steps, with backups and an automatic rollback. The SSH port and the dashboard port stay open even when the uplink shield is on. |
-
-## What it doesn't claim
-
-I'd rather be upfront about the limits.
-
-- Four-digit guest codes are easy to guess. The attempt limit is the protection, not secrecy.
-- A captive portal can't redirect HTTPS, so the login sheet relies on plain-HTTP probes.
-- It's built for a small private network and isn't meant for hosting strangers' workloads.
-- It hasn't had an independent security audit. I'd welcome feedback from anyone who reads the design.

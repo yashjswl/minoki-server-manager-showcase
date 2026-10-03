@@ -172,10 +172,6 @@ The console has no build step. It uses plain ES modules, CSS variables for the t
 
 Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg and systemd. The front end is plain JavaScript and CSS, delivered as progressive web apps. I check the visuals in headless Chrome.
 
-## Known limits and next steps
-
-It isn't finished, and I'd rather say so. I'd like to test the phone sign-in sheet on more devices than I've had access to. There's no installer package yet, since I currently deploy by copying files. And the recorded alert sounds aren't part of the project files.
-
 ## Read next
 
 - [Feature tour](docs/FEATURES.md)
