@@ -178,12 +178,12 @@ Go, SQLite, iptables, ipset, tc, WireGuard, hostapd, dnsmasq, nginx, ffmpeg and 
 
 ## Contact
 
-From Yashasvi Jaiswal. Source code is available for review on request.
+From [Yashasvi Jaiswal](https://yashjswl.com). Source code is available for review on request.
 
 LinkedIn: [linkedin.com/in/yashjswl](https://www.linkedin.com/in/yashjswl/)
 
+Email: [hello@yashjswl.com](mailto:hello@yashjswl.com)
+
 ---
 
-&copy; 2026 [Yashasvi Jaiswal](https://yashjswl.com). All rights reserved.
-
-Email: [hello@yashjswl.com](mailto:hello@yashjswl.com)
+&copy; 2026 Yashasvi Jaiswal. All rights reserved.
