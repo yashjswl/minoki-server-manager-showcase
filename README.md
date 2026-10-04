@@ -6,6 +6,8 @@ A Go daemon, a command-line tool and a web console that turns a small Linux serv
 
 This repository is a showcase of the project, holding screenshots, diagrams and write-ups. The source code is private and available for review on request (Please refer to contact details at the bottom). The data in screenshots are made up for privacy.
 
+Live demo: https://c1.yashjswl.com
+
 ![A short tour of the console](assets/demo.gif)
 
 ## Why I built it
@@ -182,4 +184,6 @@ LinkedIn: [linkedin.com/in/yashjswl](https://www.linkedin.com/in/yashjswl/)
 
 ---
 
-&copy; 2026 Yashasvi Jaiswal. All rights reserved.
+&copy; 2026 [Yashasvi Jaiswal](https://yashjswl.com). All rights reserved.
+
+Email: [hello@yashjswl.com](mailto:hello@yashjswl.com)
